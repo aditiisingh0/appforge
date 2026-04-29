@@ -14,17 +14,37 @@ import { requestLogger } from './middleware/requestLogger';
 
 const app = express();
 
-// ✅ IMPORTANT: Render dynamic port
+// ✅ Render dynamic port
 const PORT = process.env.PORT || 4000;
 
-// ================= MIDDLEWARE =================
+// ================= CORS FIX =================
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://appforge-green.vercel.app', // 👈 apna Vercel URL
+];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: function (origin, callback) {
+    // allow requests with no origin (Postman, curl, mobile apps)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('CORS not allowed'), false);
+    }
+  },
   credentials: true,
 }));
 
+// ✅ Preflight requests fix (VERY IMPORTANT)
+app.options('*', cors());
+
+// ================= BODY PARSER =================
 app.use(json({ limit: '10mb' }));
 app.use(urlencoded({ extended: true }));
+
+// ================= LOGGER =================
 app.use(requestLogger);
 
 // ================= HEALTH CHECK =================
@@ -49,7 +69,7 @@ app.use(errorHandler);
 // ================= SERVER START =================
 async function main() {
   try {
-    // ✅ DB try karo, fail ho toh bhi server chale
+    // ✅ DB init (fail hone par bhi server chalega)
     try {
       await initDB();
       console.log('✅ Database initialized');
@@ -58,7 +78,6 @@ async function main() {
       console.error(err);
     }
 
-    // ✅ ALWAYS start server
     app.listen(PORT, () => {
       console.log(`🚀 AppForge backend running on port ${PORT}`);
     });
