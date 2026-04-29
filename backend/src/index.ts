@@ -15,27 +15,34 @@ import { requestLogger } from './middleware/requestLogger';
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// ✅ VERY IMPORTANT (FULL FIX)
+// ================= CORS FIX =================
 const allowedOrigins = [
-  "http://localhost:3000",
-  "https://appforge-green.vercel.app"
+  'http://localhost:3000',
+  'https://appforge-green.vercel.app',
 ];
 
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // allow postman/mobile
+  origin: (origin, callback) => {
+    // allow server-to-server / postman
+    if (!origin) return callback(null, true);
 
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
-    } else {
-      return callback(new Error("CORS not allowed"), false);
     }
+
+    console.error('❌ CORS blocked:', origin);
+    return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// ✅ HANDLE PREFLIGHT REQUESTS
-app.options('*', cors());
+// ✅ Proper preflight handling
+app.options('*', cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
 
 // ================= MIDDLEWARE =================
 app.use(json({ limit: '10mb' }));
@@ -44,11 +51,11 @@ app.use(requestLogger);
 
 // ================= HEALTH =================
 app.get('/', (_req, res) => {
-  res.json({ message: 'Backend running 🚀' });
+  res.json({ message: '🚀 AppForge backend running' });
 });
 
 app.get('/health', (_req, res) => {
-  res.json({ status: 'ok' });
+  res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
 // ================= ROUTES =================
@@ -58,25 +65,27 @@ app.use('/api/dynamic', dynamicRouter);
 app.use('/api/csv', csvRouter);
 app.use('/api/notifications', notificationsRouter);
 
-// ================= ERROR =================
+// ================= ERROR HANDLER =================
 app.use(errorHandler);
 
-// ================= START =================
+// ================= START SERVER =================
 async function main() {
   try {
+    // ✅ Try DB but don't crash server
     try {
       await initDB();
-      console.log("✅ DB connected");
-    } catch (e) {
-      console.log("⚠️ DB failed but continuing");
+      console.log('✅ Database connected');
+    } catch (err) {
+      console.error('⚠️ DB connection failed, continuing...');
+      console.error(err);
     }
 
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on ${PORT}`);
+      console.log(`🚀 Server running on port ${PORT}`);
     });
 
   } catch (err) {
-    console.error(err);
+    console.error('❌ Fatal error:', err);
     process.exit(1);
   }
 }
