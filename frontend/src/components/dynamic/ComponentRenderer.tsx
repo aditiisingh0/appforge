@@ -4,6 +4,7 @@ import { AppConfig, UIComponentConfig, CollectionConfig } from '@/types/config';
 import { DynamicTable } from './DynamicTable';
 import { DynamicForm } from './DynamicForm';
 import { DynamicDashboard } from './DynamicDashboard';
+import { KanbanBoard } from './KanbanBoard';
 import { dynamicApi } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { AlertCircle } from 'lucide-react';
@@ -19,13 +20,11 @@ export function ComponentRenderer({ appId, config, component }: ComponentRendere
     ? config.collections.find(c => c.name === component.collection)
     : undefined;
 
-  // Graceful fallback if collection not found
   if (component.collection && !collection) {
     return (
       <div className="flex items-center gap-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm">
         <AlertCircle className="w-4 h-4 flex-shrink-0" />
         Collection <code className="font-mono bg-yellow-100 px-1 rounded">{component.collection}</code> not found in config.
-        Check your app configuration.
       </div>
     );
   }
@@ -67,25 +66,30 @@ export function ComponentRenderer({ appId, config, component }: ComponentRendere
       );
 
     case 'chart':
-      if (!collection) return <MissingCollection type="chart" />;
       return (
         <DynamicDashboard
           appId={appId}
           component={component}
-          collections={[collection]}
+          collections={collection ? [collection] : config.collections}
         />
       );
 
-    // Unknown component types are rendered with a helpful message
+    case 'kanban':
+      if (!collection) return <MissingCollection type="kanban" />;
+      return (
+        <KanbanBoard
+          appId={appId}
+          collection={collection}
+          statusField={component.statusField as string | undefined}
+        />
+      );
+
     default:
       return (
         <div className="p-4 bg-gray-50 border border-dashed border-gray-300 rounded-lg text-center">
           <p className="text-sm text-gray-500">
             Component type <code className="font-mono bg-gray-100 px-1 rounded">{component.type}</code> is not yet supported.
           </p>
-          {component.title && (
-            <p className="text-xs text-gray-400 mt-1">Component: {component.title}</p>
-          )}
         </div>
       );
   }
