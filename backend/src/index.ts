@@ -22,25 +22,10 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-  origin: (origin, callback) => {
-    // allow server-to-server / postman
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-
-    console.error('❌ CORS blocked:', origin);
-    return callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
-
-// ✅ Proper preflight handling
-app.options('*', cors({
-  origin: allowedOrigins,
+  origin: [
+    "http://localhost:3000",
+    "https://appforge-green.vercel.app"
+  ],
   credentials: true,
 }));
 
