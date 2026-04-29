@@ -13,47 +13,42 @@ import { errorHandler } from './middleware/errorHandler';
 import { requestLogger } from './middleware/requestLogger';
 
 const app = express();
-
-// ✅ Render dynamic port
 const PORT = process.env.PORT || 4000;
 
-// ================= CORS FIX =================
+// ✅ VERY IMPORTANT (FULL FIX)
 const allowedOrigins = [
-  'http://localhost:3000',
-  'https://appforge-green.vercel.app', // 👈 apna Vercel URL
+  "http://localhost:3000",
+  "https://appforge-green.vercel.app"
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // allow requests with no origin (Postman, curl, mobile apps)
-    if (!origin) return callback(null, true);
+    if (!origin) return callback(null, true); // allow postman/mobile
 
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     } else {
-      return callback(new Error('CORS not allowed'), false);
+      return callback(new Error("CORS not allowed"), false);
     }
   },
   credentials: true,
 }));
 
-// ✅ Preflight requests fix (VERY IMPORTANT)
+// ✅ HANDLE PREFLIGHT REQUESTS
 app.options('*', cors());
 
-// ================= BODY PARSER =================
+// ================= MIDDLEWARE =================
 app.use(json({ limit: '10mb' }));
 app.use(urlencoded({ extended: true }));
-
-// ================= LOGGER =================
 app.use(requestLogger);
 
-// ================= HEALTH CHECK =================
+// ================= HEALTH =================
 app.get('/', (_req, res) => {
-  res.json({ message: 'AppForge backend is running 🚀' });
+  res.json({ message: 'Backend running 🚀' });
 });
 
 app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ status: 'ok' });
 });
 
 // ================= ROUTES =================
@@ -63,27 +58,25 @@ app.use('/api/dynamic', dynamicRouter);
 app.use('/api/csv', csvRouter);
 app.use('/api/notifications', notificationsRouter);
 
-// ================= ERROR HANDLER =================
+// ================= ERROR =================
 app.use(errorHandler);
 
-// ================= SERVER START =================
+// ================= START =================
 async function main() {
   try {
-    // ✅ DB init (fail hone par bhi server chalega)
     try {
       await initDB();
-      console.log('✅ Database initialized');
-    } catch (err) {
-      console.error('⚠️ DB connection failed, but continuing...');
-      console.error(err);
+      console.log("✅ DB connected");
+    } catch (e) {
+      console.log("⚠️ DB failed but continuing");
     }
 
     app.listen(PORT, () => {
-      console.log(`🚀 AppForge backend running on port ${PORT}`);
+      console.log(`🚀 Server running on ${PORT}`);
     });
 
   } catch (err) {
-    console.error('❌ Failed to start server:', err);
+    console.error(err);
     process.exit(1);
   }
 }
