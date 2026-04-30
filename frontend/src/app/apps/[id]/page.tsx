@@ -126,7 +126,7 @@ PORT=4000
     }
     
     const zipped = zipSync(zipFiles);
-    const blob = new Blob([zipped], { type: 'application/zip' });
+    const blob = new Blob([zipped as unknown as BlobPart], { type: 'application/zip' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
