@@ -256,7 +256,7 @@ export default function LandingPage() {
             </div>
             <span className="text-sm font-medium text-gray-300">AppForge</span>
           </div>
-          <p className="text-xs">Built for the AppForge Hackathon 2026</p>
+          <p className="text-xs">© 2026 AppForge · Build apps from config · Made by Aditi Singh</p>
           <div className="flex gap-4 text-xs">
             <Link href="/auth/login" className="hover:text-white transition-colors">Sign In</Link>
             <Link href="/auth/register" className="hover:text-white transition-colors">Register</Link>
