@@ -7,7 +7,7 @@ import { appsRouter } from './routes/apps';
 import { dynamicRouter } from './routes/dynamic';
 import { csvRouter } from './routes/csv';
 import { notificationsRouter } from './routes/notifications';
-
+import { emailRouter } from './routes/email';
 import { initDB } from './db/init';
 import { errorHandler } from './middleware/errorHandler';
 import { requestLogger } from './middleware/requestLogger';
@@ -40,6 +40,7 @@ app.get('/health', (_req, res) => {
 app.use('/api/auth', authRouter);
 app.use('/api/apps', appsRouter);
 app.use('/api/dynamic', dynamicRouter);
+app.use('/api/email', emailRouter);
 app.use('/api/csv', csvRouter);
 app.use('/api/notifications', notificationsRouter);
 
